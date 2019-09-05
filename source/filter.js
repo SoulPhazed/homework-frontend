@@ -1,6 +1,6 @@
 'use strict';
 
-let escapeMap = {
+const escapeMap = {
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
@@ -9,52 +9,44 @@ let escapeMap = {
     '`': '&#x60;',
 };
 
+/**
+ * Экранирование запрещенных символов
+ *
+ * @param {string} input - Входящая строка для экранирования
+ * @returns {string} - Экранированная строка
+ */
 const escapeHTML = (input) => String(input).replace(/[&<>"'`]/g, (symbol) => escapeMap[symbol]);
 
-const filter = function(inputHTML, validTags) {
+/**
+ * Фильтрует входящий HTML-код, оставляя разрешенные тэги
+ *
+ * @param {string} inputHTML - Входящий HTML
+ * @param {string[]} validTags - Разрешенные тэги
+ * @returns {string} - Отфильтрованный HTML
+ */
+const filter = (inputHTML, validTags) => {
     let outputHTML = '';
 
     if (!inputHTML) {
         return outputHTML;
     }
 
-    let firstIterator = 0;
-    let lastIterator = firstIterator;
-    while (firstIterator <= inputHTML.length) {
+    const tags = inputHTML.match(new RegExp(`<\/?(${validTags.join('|')})[^>]*>`, 'g'));
 
-        // Экранирование текста
-        lastIterator = inputHTML.indexOf('<', firstIterator);
-        lastIterator = lastIterator >= 0 ? lastIterator : outputHTML.length + 1;
-        outputHTML += escapeHTML(inputHTML.slice(firstIterator, lastIterator));
-        firstIterator = lastIterator;
+    let startIterator = 0;
+    let endIterator = 0;
 
-        // Проверяем - есть ли валидные тэги в угловых скобках
-        lastIterator = inputHTML.indexOf('>', firstIterator);
-        if (lastIterator >= 0) {
-            let isMatch = false;
-            // Дополнительные итераторы для выделения чистого названия тэга внутри скобок
-            let firstTagIterator = inputHTML[firstIterator + 1] === '/' ? firstIterator + 2 : firstIterator + 1;
-            let lastTagIterator = inputHTML.slice(0, lastIterator).indexOf(' ', firstTagIterator);
-            lastTagIterator = lastTagIterator >= 0 ? lastTagIterator : lastIterator;
-
-            for (let tag of validTags) {
-                if (inputHTML.slice(firstTagIterator, lastTagIterator) === tag) {
-                    outputHTML += inputHTML.slice(firstIterator, lastIterator + 1);
-                    isMatch = true;
-                    break;
-                }
-            }
-            // Если не нашли валидные тэги, то все экранируем
-            if (!isMatch) {
-                outputHTML += escapeHTML(inputHTML.slice(firstIterator, lastIterator + 1));
-            }
-            firstIterator = ++lastIterator;
-        } else {
-            // Если угловых скобок (пары) вообще не осталось
-            lastIterator = outputHTML.length + 1;
-            outputHTML += escapeHTML(inputHTML.slice(firstIterator, lastIterator));
-            firstIterator = lastIterator;
-        }
+    if (tags) {
+        tags.forEach((tag) => {
+            endIterator = inputHTML.indexOf(tag, startIterator);
+            outputHTML += escapeHTML(inputHTML.slice(startIterator, endIterator));
+            outputHTML += tag;
+            startIterator = outputHTML.length;
+        });
     }
+
+    endIterator = inputHTML.length;
+    outputHTML += escapeHTML(inputHTML.slice(startIterator, endIterator));
+
     return outputHTML;
 };
