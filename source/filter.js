@@ -39,8 +39,7 @@ const filter = (inputHTML, validTags) => {
     if (tags) {
         tags.forEach((tag) => {
             endIterator = inputHTML.indexOf(tag, startIterator);
-            outputHTML += escapeHTML(inputHTML.slice(startIterator, endIterator));
-            outputHTML += tag;
+            outputHTML += escapeHTML(inputHTML.slice(startIterator, endIterator)) + tag;
             startIterator = outputHTML.length;
         });
     }
