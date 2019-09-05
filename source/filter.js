@@ -31,7 +31,7 @@ const filter = (inputHTML, validTags) => {
         return outputHTML;
     }
 
-    const tags = inputHTML.match(new RegExp(`<\/?(${validTags.join('|')})[^>]*>`, 'g'));
+    const tags = inputHTML.match(new RegExp(`<\/?(${validTags.join('|')})(>| [^>]*>)`, 'g'));
 
     let startIterator = 0;
     let endIterator = 0;
